@@ -16,6 +16,8 @@ import javax.swing.JTextField;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
 
+import com.mongodb.MongoTimeoutException;
+
 
 public class Main extends JFrame {
 
@@ -88,24 +90,29 @@ public class Main extends JFrame {
 				String username = "";
 				String loginPassword = new String(loginPasswordField.getPassword());//输入的密码
 				String password = null;// 从数据库中得到的密码
-				
 				username = loginAccountTextField.getText(); //获取输入的用户名
-				MongodbLink ml =new MongodbLink();
-				if(ml.verifyUserExistOrNot(username)){
-					//连接数据库，从数据库获取密码，并验证登陆
-					password = ml.getPassword(username);
-					if (loginPassword.compareTo(password)==0){
-						frame.setVisible(false);
-						frame.dispose();;
-						new Thread(new MyFriendList(username)).start();					
+				try{
+					MongodbLink ml =new MongodbLink();
+					if(ml.verifyUserExistOrNot(username)){
+						//连接数据库，从数据库获取密码，并验证登陆
+						password = ml.getPassword(username);
+						if (loginPassword.compareTo(password)==0){
+							frame.setVisible(false);
+							frame.dispose();;
+							new Thread(new MyFriendList(username)).start();					
+						}else{
+							Object[] options = { "OK"};
+							JOptionPane.showOptionDialog(null, "username or password is wrong!", "Attention", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, null); 
+						}
 					}else{
 						Object[] options = { "OK"};
-						JOptionPane.showOptionDialog(null, "username or password is wrong!", "Attention", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, null); 
+						JOptionPane.showOptionDialog(null, "username isn't exist!", "Attention", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, null); 
 					}
-				}else{
+				}catch(MongoTimeoutException e){
 					Object[] options = { "OK"};
-					JOptionPane.showOptionDialog(null, "username isn't exist!", "Attention", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, null); 
+					JOptionPane.showOptionDialog(null, "Server is busy!", "Attention", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, null); 
 				}
+				
 						
 		});
 		
